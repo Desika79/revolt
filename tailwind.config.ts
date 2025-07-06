@@ -61,7 +61,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// WhusprSpace Custom Colors
+				'whisper-float': 'hsl(var(--whisper-float))',
+				'whisper-ambient': 'hsl(var(--whisper-ambient))',
+				'whisper-mist': 'hsl(var(--whisper-mist))',
+				'cyber-cyan': 'hsl(var(--cyber-cyan))',
+				'cyber-purple': 'hsl(var(--cyber-purple))',
+				'cyber-glow': 'hsl(var(--cyber-glow))',
+				'ambient-primary': 'hsl(var(--ambient-primary))',
+				'ambient-secondary': 'hsl(var(--ambient-secondary))',
+				'ambient-tertiary': 'hsl(var(--ambient-tertiary))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -70,25 +80,37 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'whisper-float': {
+					'0%, 100%': { transform: 'translateY(0px) scale(1)', opacity: '0.4' },
+					'50%': { transform: 'translateY(-20px) scale(1.1)', opacity: '1' }
+				},
+				'cyber-pulse': {
+					'0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+					'50%': { opacity: '1', transform: 'scale(1.05)' }
+				},
+				'ambient-glow': {
+					'0%, 100%': { filter: 'blur(1px) brightness(1)' },
+					'50%': { filter: 'blur(2px) brightness(1.2)' }
+				},
+				'sound-wave': {
+					'0%, 100%': { transform: 'scaleY(1)' },
+					'50%': { transform: 'scaleY(1.5)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'whisper-float': 'whisper-float 4s ease-in-out infinite',
+				'cyber-pulse': 'cyber-pulse 2s ease-in-out infinite',
+				'ambient-glow': 'ambient-glow 3s ease-in-out infinite',
+				'sound-wave': 'sound-wave 0.5s ease-in-out infinite'
 			}
 		}
 	},
