@@ -102,6 +102,21 @@ export default {
 				'sound-wave': {
 					'0%, 100%': { transform: 'scaleY(1)' },
 					'50%': { transform: 'scaleY(1.5)' }
+				},
+				'shadow-run': {
+					'0%': { transform: 'translateX(-100px) skewX(0deg)' },
+					'50%': { transform: 'translateX(50vw) skewX(-2deg)' },
+					'100%': { transform: 'translateX(calc(100vw + 100px)) skewX(0deg)' }
+				},
+				'whisper-spread': {
+					'0%': { transform: 'scale(0) rotate(0deg)', opacity: '0.8' },
+					'50%': { transform: 'scale(2) rotate(180deg)', opacity: '0.4' },
+					'100%': { transform: 'scale(4) rotate(360deg)', opacity: '0' }
+				},
+				'echo-return': {
+					'0%': { transform: 'scale(2) translateX(100px)', opacity: '0' },
+					'50%': { transform: 'scale(1) translateX(50px)', opacity: '0.8' },
+					'100%': { transform: 'scale(0.5) translateX(0px)', opacity: '0' }
 				}
 			},
 			animation: {
@@ -110,7 +125,10 @@ export default {
 				'whisper-float': 'whisper-float 4s ease-in-out infinite',
 				'cyber-pulse': 'cyber-pulse 2s ease-in-out infinite',
 				'ambient-glow': 'ambient-glow 3s ease-in-out infinite',
-				'sound-wave': 'sound-wave 0.5s ease-in-out infinite'
+				'sound-wave': 'sound-wave 0.5s ease-in-out infinite',
+				'shadow-run': 'shadow-run 15s linear infinite',
+				'whisper-spread': 'whisper-spread 3s ease-out infinite',
+				'echo-return': 'echo-return 2s ease-in infinite'
 			}
 		}
 	},

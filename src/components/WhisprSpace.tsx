@@ -94,6 +94,174 @@ export default function WhisprSpace() {
         )}
       </AnimatePresence>
 
+      {/* Shadow Figures - Men in Black Suits */}
+      <div className="absolute inset-0 z-5 overflow-hidden pointer-events-none">
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={`shadow-${i}`}
+            className="absolute"
+            initial={{ x: -200, opacity: 0 }}
+            animate={{
+              x: [window?.innerWidth + 200 || 1200],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 15 + i * 3,
+              delay: i * 5,
+              repeat: Infinity,
+              repeatDelay: 10,
+              ease: "easeInOut",
+            }}
+            style={{
+              top: `${60 + i * 15}%`,
+              filter: `blur(${0.5 + i * 0.2}px)`,
+            }}
+          >
+            {/* Shadow Figure SVG */}
+            <svg width="80" height="120" viewBox="0 0 80 120" className="opacity-60">
+              <defs>
+                <filter id={`shadow-blur-${i}`}>
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+                </filter>
+              </defs>
+              
+              {/* Figure Body */}
+              <path
+                d="M40 20 L35 25 L30 40 L28 60 L30 80 L35 100 L40 110 L45 100 L50 80 L52 60 L50 40 L45 25 Z"
+                fill="rgba(0,0,0,0.8)"
+                filter={`url(#shadow-blur-${i})`}
+              />
+              
+              {/* Head */}
+              <circle cx="40" cy="15" r="8" fill="rgba(0,0,0,0.9)" />
+              
+              {/* Arms (running pose) */}
+              <motion.path
+                d="M30 45 L20 55 L25 65"
+                stroke="rgba(0,0,0,0.8)"
+                strokeWidth="4"
+                fill="none"
+                animate={{ d: ["M30 45 L20 55 L25 65", "M30 45 L15 50 L20 60", "M30 45 L20 55 L25 65"] }}
+                transition={{ duration: 0.6, repeat: Infinity }}
+              />
+              <motion.path
+                d="M50 45 L60 35 L55 25"
+                stroke="rgba(0,0,0,0.8)"
+                strokeWidth="4"
+                fill="none"
+                animate={{ d: ["M50 45 L60 35 L55 25", "M50 45 L65 40 L60 30", "M50 45 L60 35 L55 25"] }}
+                transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }}
+              />
+              
+              {/* Legs (running pose) */}
+              <motion.path
+                d="M35 100 L30 110 L25 120"
+                stroke="rgba(0,0,0,0.8)"
+                strokeWidth="5"
+                fill="none"
+                animate={{ d: ["M35 100 L30 110 L25 120", "M35 100 L40 115 L45 125", "M35 100 L30 110 L25 120"] }}
+                transition={{ duration: 0.4, repeat: Infinity }}
+              />
+              <motion.path
+                d="M45 100 L50 110 L55 120"
+                stroke="rgba(0,0,0,0.8)"
+                strokeWidth="5"
+                fill="none"
+                animate={{ d: ["M45 100 L50 110 L55 120", "M45 100 L40 115 L35 125", "M45 100 L50 110 L55 120"] }}
+                transition={{ duration: 0.4, repeat: Infinity, delay: 0.2 }}
+              />
+            </svg>
+
+            {/* Sound Waves from Whispers */}
+            <div className="absolute left-16 top-2">
+              {[...Array(4)].map((_, waveIndex) => (
+                <motion.div
+                  key={`wave-${i}-${waveIndex}`}
+                  className="absolute rounded-full border-2 border-cyber-cyan/30"
+                  initial={{ scale: 0, opacity: 0.8 }}
+                  animate={{
+                    scale: [0, 3 + waveIndex * 0.5],
+                    opacity: [0.8, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    delay: waveIndex * 0.3,
+                    repeat: Infinity,
+                    repeatDelay: 1,
+                  }}
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    left: `${waveIndex * 10}px`,
+                    transformOrigin: "center",
+                  }}
+                />
+              ))}
+              
+              {/* Reply Waves Coming Back */}
+              {[...Array(3)].map((_, replyIndex) => (
+                <motion.div
+                  key={`reply-${i}-${replyIndex}`}
+                  className="absolute rounded-full border-2 border-cyber-purple/40"
+                  initial={{ scale: 2, opacity: 0, x: 100 }}
+                  animate={{
+                    scale: [2, 0.5],
+                    opacity: [0, 0.6, 0],
+                    x: [100, 0],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    delay: replyIndex * 0.4 + 1,
+                    repeat: Infinity,
+                    repeatDelay: 2,
+                  }}
+                  style={{
+                    width: "15px",
+                    height: "15px",
+                    top: `${replyIndex * 8}px`,
+                    transformOrigin: "center",
+                  }}
+                />
+              ))}
+
+              {/* Whisper Text Particles */}
+              <motion.div
+                className="absolute text-xs text-cyber-cyan/50 font-mono"
+                animate={{
+                  x: [0, 50, 100],
+                  y: [-5, -15, -25],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  repeatDelay: 2,
+                }}
+              >
+                whispers...
+              </motion.div>
+              
+              <motion.div
+                className="absolute text-xs text-cyber-purple/40 font-mono"
+                animate={{
+                  x: [80, 40, 0],
+                  y: [-10, -5, 0],
+                  opacity: [0, 0.8, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  delay: 1.5,
+                  repeat: Infinity,
+                  repeatDelay: 3,
+                }}
+              >
+                ...echoes
+              </motion.div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
       {/* Animated Background with Sound-Responsive Wave */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <svg className="absolute bottom-0 w-full h-64" viewBox="0 0 1440 320">
