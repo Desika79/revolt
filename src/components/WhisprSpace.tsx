@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function WhusprSpace() {
+export default function WhisprSpace() {
   const [volume, setVolume] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -160,7 +160,7 @@ export default function WhusprSpace() {
             }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            WhusprSpace
+            WhisprSpace
           </motion.h1>
           
           <motion.p

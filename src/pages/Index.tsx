@@ -1,7 +1,7 @@
-import WhusprSpace from "@/components/WhusprSpace";
+import WhisprSpace from "@/components/WhisprSpace";
 
 const Index = () => {
-  return <WhusprSpace />;
+  return <WhisprSpace />;
 };
 
 export default Index;

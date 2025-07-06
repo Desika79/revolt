@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* WhusprSpace Design System - Audio Visualization Theme */
+/* WhisprSpace Design System - Audio Visualization Theme */
 
 @layer base {
   :root {
-    /* Core WhusprSpace Colors */
+    /* Core WhisprSpace Colors */
     --background: 234 29% 6%;  /* #0C0C1F */
     --foreground: 0 0% 100%;
     
@@ -70,7 +70,7 @@
   }
 
   .dark {
-    /* Dark mode inherits the same WhusprSpace theme */
+    /* Dark mode inherits the same WhisprSpace theme */
     --background: 234 29% 6%;
     --foreground: 0 0% 100%;
     --card: 240 25% 14%;

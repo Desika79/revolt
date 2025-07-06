@@ -62,7 +62,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// WhusprSpace Custom Colors
+				// WhisprSpace Custom Colors
 				'whisper-float': 'hsl(var(--whisper-float))',
 				'whisper-ambient': 'hsl(var(--whisper-ambient))',
 				'whisper-mist': 'hsl(var(--whisper-mist))',
