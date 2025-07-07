@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function WhisprSpace() {
   const [volume, setVolume] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [currentView, setCurrentView] = useState<'landing' | 'main'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'main' | 'rooms' | 'individuals'>('landing');
   const [microphoneGranted, setMicrophoneGranted] = useState(false);
   const [messages, setMessages] = useState([
     { id: 1, text: "Welcome to the void...", sender: "system", timestamp: new Date() },
@@ -137,6 +137,130 @@ export default function WhisprSpace() {
     };
   }, []);
 
+  if (currentView === 'rooms') {
+    return (
+      <div className="min-h-screen relative bg-gradient-to-br from-ambient-primary via-ambient-secondary to-ambient-tertiary text-foreground font-sans overflow-hidden">
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <motion.div 
+            className="p-4 bg-ambient-primary/80 backdrop-blur-sm border-b border-cyber-cyan/20"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent">
+                  WhisprSpace - Rooms
+                </h1>
+                <p className="text-sm text-muted-foreground">Discover whisper chambers</p>
+              </div>
+              <button 
+                onClick={() => setCurrentView('main')}
+                className="px-4 py-2 text-cyber-cyan border border-cyber-cyan/30 rounded-lg hover:bg-cyber-cyan/10 transition-all duration-200"
+              >
+                Back to Void
+              </button>
+            </div>
+          </motion.div>
+
+          <div className="flex-1 p-6">
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {['Echo Chamber', 'Silent Hall', 'Whisper Grove', 'Void Sanctuary', 'Phantom Lounge', 'Ethereal Space'].map((room, index) => (
+                <motion.div
+                  key={room}
+                  className="p-4 bg-whisper-mist/10 border border-cyber-cyan/20 rounded-lg hover:bg-cyber-cyan/5 transition-all duration-200 cursor-pointer"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h3 className="text-lg font-semibold text-cyber-cyan mb-2">{room}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {index % 2 === 0 ? 'Active whispers flowing...' : 'Silence awaits your voice...'}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-cyber-purple">{Math.floor(Math.random() * 20)} listeners</span>
+                    <button className="px-3 py-1 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                      Enter
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentView === 'individuals') {
+    return (
+      <div className="min-h-screen relative bg-gradient-to-br from-ambient-primary via-ambient-secondary to-ambient-tertiary text-foreground font-sans overflow-hidden">
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <motion.div 
+            className="p-4 bg-ambient-primary/80 backdrop-blur-sm border-b border-cyber-cyan/20"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent">
+                  WhisprSpace - Individuals
+                </h1>
+                <p className="text-sm text-muted-foreground">Connect with fellow whisperers</p>
+              </div>
+              <button 
+                onClick={() => setCurrentView('main')}
+                className="px-4 py-2 text-cyber-cyan border border-cyber-cyan/30 rounded-lg hover:bg-cyber-cyan/10 transition-all duration-200"
+              >
+                Back to Void
+              </button>
+            </div>
+          </motion.div>
+
+          <div className="flex-1 p-6">
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {Array.from({ length: 8 }, (_, index) => (
+                <motion.div
+                  key={index}
+                  className="p-4 bg-whisper-mist/10 border border-cyber-purple/20 rounded-lg hover:bg-cyber-purple/5 transition-all duration-200 cursor-pointer"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="w-12 h-12 bg-gradient-to-r from-cyber-cyan to-cyber-purple rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-ambient-primary font-bold">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                  </div>
+                  <h3 className="text-center text-cyber-purple font-medium mb-1">Whisperer {String.fromCharCode(65 + index)}</h3>
+                  <p className="text-xs text-muted-foreground text-center mb-3">
+                    {index % 3 === 0 ? 'Listening...' : index % 3 === 1 ? 'Whispering...' : 'Silent...'}
+                  </p>
+                  <button className="w-full px-3 py-1 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                    Whisper
+                  </button>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (currentView === 'main') {
     return (
       <div className="min-h-screen relative bg-gradient-to-br from-ambient-primary via-ambient-secondary to-ambient-tertiary text-foreground font-sans overflow-hidden">
@@ -188,7 +312,7 @@ export default function WhisprSpace() {
           </div>
         </div>
 
-        {/* Main Chat Interface */}
+        {/* Main Void Interface */}
         <div className="relative z-10 min-h-screen flex flex-col">
           {/* Header */}
           <motion.div 
@@ -202,7 +326,7 @@ export default function WhisprSpace() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent">
                   WhisprSpace
                 </h1>
-                <p className="text-sm text-muted-foreground">General lobby</p>
+                <p className="text-sm text-muted-foreground">The void awaits</p>
               </div>
               <button 
                 onClick={() => setCurrentView('landing')}
@@ -214,69 +338,51 @@ export default function WhisprSpace() {
           </motion.div>
 
           {/* Welcome Message */}
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex flex-col items-center justify-center px-4">
             <motion.h2
-              className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent text-center"
+              className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent text-center mb-12"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              Welcome to the Lobby
+              Welcome to the void
             </motion.h2>
-          </div>
 
-          {/* Messages Area */}
-          <div className="overflow-y-auto p-4 space-y-4 max-h-[300px]">
-            {messages.map((message, index) => (
-              <motion.div
-                key={message.id}
-                className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender === 'me'
-                      ? 'bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary shadow-lg shadow-cyber-cyan/25'
-                      : message.sender === 'system'
-                      ? 'bg-whisper-mist/20 text-cyber-cyan border border-cyber-cyan/30'
-                      : 'bg-ambient-secondary/80 text-muted-foreground border border-cyber-purple/30'
-                  }`}
-                >
-                  <p className="text-sm">{message.text}</p>
-                  <p className="text-xs opacity-60 mt-1">
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Input Area */}
-          <motion.div 
-            className="p-4 bg-ambient-primary/80 backdrop-blur-sm border-t border-cyber-cyan/20"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="flex gap-2">
+            {/* Search Bar */}
+            <motion.div 
+              className="w-full max-w-md mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
               <input
                 type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Whisper something..."
-                className="flex-1 px-4 py-2 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan"
+                placeholder="Search for whispers, rooms, or souls..."
+                className="w-full px-6 py-3 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan"
               />
+            </motion.div>
+
+            {/* Navigation Options */}
+            <motion.div 
+              className="flex gap-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+            >
               <button
-                onClick={handleSendMessage}
-                className="px-6 py-2 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary font-semibold rounded-lg hover:scale-105 transition-transform duration-200 shadow-lg hover:shadow-cyber-cyan/25"
+                onClick={() => setCurrentView('rooms')}
+                className="px-8 py-4 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary font-semibold rounded-lg hover:scale-105 transition-transform duration-200 shadow-lg hover:shadow-cyber-cyan/25"
               >
-                Send
+                Enter Rooms
               </button>
-            </div>
-          </motion.div>
+              <button
+                onClick={() => setCurrentView('individuals')}
+                className="px-8 py-4 border-2 border-cyber-purple text-cyber-purple font-semibold rounded-lg hover:bg-cyber-purple hover:text-ambient-primary transition-all duration-200"
+              >
+                Find Individuals
+              </button>
+            </motion.div>
+          </div>
 
           {/* Enhanced Volume Indicator */}
           <div className="absolute top-4 right-20 z-20">
