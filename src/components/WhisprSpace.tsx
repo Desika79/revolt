@@ -11,6 +11,23 @@ export default function WhisprSpace() {
     { id: 2, text: "Your whispers echo eternally here", sender: "void", timestamp: new Date() }
   ]);
   const [newMessage, setNewMessage] = useState("");
+  const [roomMode, setRoomMode] = useState<'create' | 'search'>('search');
+  const [roomTopic, setRoomTopic] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedRoom, setGeneratedRoom] = useState<{name: string, id: string, description: string} | null>(null);
+  const [activeRooms, setActiveRooms] = useState([
+    { id: 'echo-001', name: 'Echo Chamber', description: 'Active whispers flowing...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'silent-002', name: 'Silent Hall', description: 'Silence awaits your voice...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'whisper-003', name: 'Whisper Grove', description: 'Nature\'s secrets shared...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'void-004', name: 'Void Sanctuary', description: 'Deep contemplation space...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'phantom-005', name: 'Phantom Lounge', description: 'Ethereal conversations...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'ethereal-006', name: 'Ethereal Space', description: 'Beyond reality whispers...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'cosmic-007', name: 'Cosmic Void', description: 'Universe\'s hidden truths...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'shadow-008', name: 'Shadow Realm', description: 'Dark whispers emerge...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'crystal-009', name: 'Crystal Cave', description: 'Resonant echoes within...', listeners: Math.floor(Math.random() * 20) },
+    { id: 'dream-010', name: 'Dream Portal', description: 'Subconscious murmurs...', listeners: Math.floor(Math.random() * 20) }
+  ]);
+  const [roomReloadKey, setRoomReloadKey] = useState(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
 
@@ -79,6 +96,53 @@ export default function WhisprSpace() {
         setMessages(prev => [...prev, voidMsg]);
       }, 1000 + Math.random() * 2000);
     }
+  };
+
+  const generateRoom = async () => {
+    setIsGenerating(true);
+    // Simulate AI generation delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const roomNames = [
+      'Ethereal Echo Chamber', 'Mystic Whisper Grove', 'Phantom Sanctuary', 'Shadow Nexus', 
+      'Void Confluence', 'Silent Observatory', 'Dream Resonance Hall', 'Astral Meeting Point',
+      'Temporal Whisper Hub', 'Cosmic Meditation Space', 'Spectral Discussion Realm'
+    ];
+    
+    const descriptions = [
+      `A mystical space for ${roomTopic} discussions where thoughts merge with the cosmos`,
+      `Dedicated to exploring ${roomTopic} through whispered revelations and shared insights`,
+      `An ethereal realm where ${roomTopic} enthusiasts gather to exchange profound truths`,
+      `A sanctuary for deep ${roomTopic} conversations that transcend ordinary reality`,
+      `Where ${roomTopic} mysteries unfold through collective consciousness and whispered wisdom`
+    ];
+    
+    const randomName = roomNames[Math.floor(Math.random() * roomNames.length)];
+    const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
+    const roomId = `room-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    setGeneratedRoom({
+      name: randomName,
+      id: roomId,
+      description: randomDescription
+    });
+    setIsGenerating(false);
+  };
+
+  const reloadRooms = () => {
+    const newRooms = [
+      'Nebula Chat', 'Quantum Whispers', 'Digital Séance', 'Cyber Monastery', 'Virtual Vortex',
+      'Binary Dreams', 'Code Confessions', 'Data Meditation', 'Algorithm Asylum', 'Matrix Murmurs',
+      'Neural Network', 'Silicon Sanctuary', 'Pixel Portal', 'Wireless Wisdom', 'Bandwidth Bliss'
+    ].map((name, index) => ({
+      id: `reload-${Date.now()}-${index}`,
+      name,
+      description: index % 2 === 0 ? 'Active whispers flowing...' : 'Silence awaits your voice...',
+      listeners: Math.floor(Math.random() * 25) + 1
+    })).slice(0, 10);
+    
+    setActiveRooms(newRooms);
+    setRoomReloadKey(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -164,34 +228,129 @@ export default function WhisprSpace() {
           </motion.div>
 
           <div className="flex-1 p-6">
+            {/* Navigation Buttons */}
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              className="flex gap-4 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {['Echo Chamber', 'Silent Hall', 'Whisper Grove', 'Void Sanctuary', 'Phantom Lounge', 'Ethereal Space'].map((room, index) => (
-                <motion.div
-                  key={room}
-                  className="p-4 bg-whisper-mist/10 border border-cyber-cyan/20 rounded-lg hover:bg-cyber-cyan/5 transition-all duration-200 cursor-pointer"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <h3 className="text-lg font-semibold text-cyber-cyan mb-2">{room}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {index % 2 === 0 ? 'Active whispers flowing...' : 'Silence awaits your voice...'}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-cyber-purple">{Math.floor(Math.random() * 20)} listeners</span>
-                    <button className="px-3 py-1 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
-                      Enter
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+              <button
+                onClick={() => setRoomMode('create')}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                  roomMode === 'create' 
+                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary' 
+                    : 'border border-cyber-cyan/30 text-cyber-cyan hover:bg-cyber-cyan/10'
+                }`}
+              >
+                Create Room
+              </button>
+              <button
+                onClick={() => setRoomMode('search')}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                  roomMode === 'search' 
+                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary' 
+                    : 'border border-cyber-cyan/30 text-cyber-cyan hover:bg-cyber-cyan/10'
+                }`}
+              >
+                Search Active Rooms
+              </button>
             </motion.div>
+
+            {/* Create Room Section */}
+            {roomMode === 'create' && (
+              <motion.div
+                className="max-w-md mx-auto bg-whisper-mist/10 border border-cyber-cyan/20 rounded-lg p-6"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-xl font-bold text-cyber-cyan mb-4">Create Anonymous Room</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Room Topic</label>
+                    <input
+                      type="text"
+                      value={roomTopic}
+                      onChange={(e) => setRoomTopic(e.target.value)}
+                      placeholder="Enter desired topic for AI generation..."
+                      className="w-full px-4 py-3 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan"
+                    />
+                  </div>
+                  <button
+                    onClick={generateRoom}
+                    disabled={!roomTopic.trim() || isGenerating}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary font-semibold rounded-lg hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? 'Generating...' : 'Generate Room with AI'}
+                  </button>
+                  {generatedRoom && (
+                    <motion.div
+                      className="mt-4 p-4 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-lg"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <h4 className="font-semibold text-cyber-cyan">{generatedRoom.name}</h4>
+                      <p className="text-sm text-muted-foreground">ID: {generatedRoom.id}</p>
+                      <p className="text-sm mt-2">{generatedRoom.description}</p>
+                      <button className="mt-3 px-4 py-2 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                        Launch Room
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Search Active Rooms Section */}
+            {roomMode === 'search' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-cyber-cyan">Active Rooms</h3>
+                  <button
+                    onClick={reloadRooms}
+                    className="px-4 py-2 border border-cyber-purple/30 text-cyber-purple rounded-lg hover:bg-cyber-purple/10 transition-all duration-200"
+                  >
+                    🔄 Reload
+                  </button>
+                </div>
+                
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  key={roomReloadKey}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {activeRooms.map((room, index) => (
+                    <motion.div
+                      key={room.id}
+                      className="p-4 bg-whisper-mist/10 border border-cyber-cyan/20 rounded-lg hover:bg-cyber-cyan/5 transition-all duration-200 cursor-pointer"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <h3 className="text-lg font-semibold text-cyber-cyan mb-2">{room.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">{room.description}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-cyber-purple flex items-center gap-1">
+                          <span className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse"></span>
+                          {room.listeners} listeners
+                        </span>
+                        <button className="px-3 py-1 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                          Enter
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
