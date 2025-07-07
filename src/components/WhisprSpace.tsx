@@ -202,7 +202,7 @@ export default function WhisprSpace() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent">
                   WhisprSpace
                 </h1>
-                <p className="text-sm text-muted-foreground">Anonymous Room 013</p>
+                <p className="text-sm text-muted-foreground">General lobby</p>
               </div>
               <button 
                 onClick={() => setCurrentView('landing')}
@@ -213,8 +213,20 @@ export default function WhisprSpace() {
             </div>
           </motion.div>
 
+          {/* Welcome Message */}
+          <div className="flex-1 flex items-center justify-center">
+            <motion.h2
+              className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent text-center"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              Welcome to the Lobby
+            </motion.h2>
+          </div>
+
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-200px)]">
+          <div className="overflow-y-auto p-4 space-y-4 max-h-[300px]">
             {messages.map((message, index) => (
               <motion.div
                 key={message.id}
