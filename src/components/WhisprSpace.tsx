@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function WhisprSpace() {
   const [volume, setVolume] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [currentView, setCurrentView] = useState<'landing' | 'main' | 'rooms' | 'individuals'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'main' | 'rooms' | 'individuals' | 'chat'>('landing');
+  const [currentRoom, setCurrentRoom] = useState<{name: string, id: string, description: string} | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [microphoneGranted, setMicrophoneGranted] = useState(false);
   const [messages, setMessages] = useState([
     { id: 1, text: "Welcome to the void...", sender: "system", timestamp: new Date() },
@@ -129,6 +131,32 @@ export default function WhisprSpace() {
     setIsGenerating(false);
   };
 
+  const handleSearchRoom = () => {
+    if (searchQuery.trim()) {
+      // Check if it's a room ID that exists in active rooms
+      const foundRoom = activeRooms.find(room => 
+        room.id.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      if (foundRoom) {
+        setCurrentRoom(foundRoom);
+        setCurrentView('chat');
+      } else {
+        alert(`Room with ID "${searchQuery}" not found. Please check the room ID and try again.`);
+      }
+    }
+  };
+
+  const handleLaunchRoom = (room: {name: string, id: string, description: string}) => {
+    setCurrentRoom(room);
+    setCurrentView('chat');
+  };
+
+  const handleEnterRoom = (room: {name: string, id: string, description: string, listeners: number}) => {
+    setCurrentRoom(room);
+    setCurrentView('chat');
+  };
+
   const reloadRooms = () => {
     const newRooms = [
       'Nebula Chat', 'Quantum Whispers', 'Digital Séance', 'Cyber Monastery', 'Virtual Vortex',
@@ -144,6 +172,97 @@ export default function WhisprSpace() {
     setActiveRooms(newRooms);
     setRoomReloadKey(prev => prev + 1);
   };
+
+  if (currentView === 'chat' && currentRoom) {
+    return (
+      <div className="min-h-screen relative bg-gradient-to-br from-ambient-primary via-ambient-secondary to-ambient-tertiary text-foreground font-sans overflow-hidden">
+        <div className="relative z-10 min-h-screen flex flex-col">
+          {/* Header */}
+          <motion.div 
+            className="p-4 bg-ambient-primary/80 backdrop-blur-sm border-b border-cyber-cyan/20"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent">
+                  {currentRoom.name}
+                </h1>
+                <p className="text-sm text-muted-foreground">Room ID: {currentRoom.id}</p>
+              </div>
+              <button 
+                onClick={() => setCurrentView('main')}
+                className="px-4 py-2 text-cyber-cyan border border-cyber-cyan/30 rounded-lg hover:bg-cyber-cyan/10 transition-all duration-200"
+              >
+                Leave Room
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Chat Messages */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <motion.div 
+              className="max-w-2xl mx-auto space-y-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {messages.map((message, index) => (
+                <motion.div
+                  key={message.id}
+                  className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+                  initial={{ opacity: 0, x: message.sender === 'me' ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    message.sender === 'me' 
+                      ? 'bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary' 
+                      : message.sender === 'system'
+                      ? 'bg-whisper-mist/20 border border-cyber-cyan/30 text-cyber-cyan'
+                      : 'bg-whisper-mist/10 border border-cyber-purple/30 text-cyber-purple'
+                  }`}>
+                    <p className="text-sm">{message.text}</p>
+                    <p className={`text-xs mt-1 ${
+                      message.sender === 'me' ? 'text-ambient-primary/70' : 'text-muted-foreground'
+                    }`}>
+                      {message.timestamp.toLocaleTimeString()}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Message Input */}
+          <motion.div 
+            className="p-6 bg-ambient-primary/50 backdrop-blur-sm border-t border-cyber-cyan/20"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <div className="max-w-2xl mx-auto flex gap-3">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Whisper your thoughts..."
+                className="flex-1 px-4 py-3 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan"
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              />
+              <button
+                onClick={handleSendMessage}
+                className="px-6 py-3 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary font-semibold rounded-lg hover:scale-105 transition-transform duration-200"
+              >
+                Send
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     // Note: You'll need to add ambient-whispers.mp3 to your public folder
@@ -293,7 +412,10 @@ export default function WhisprSpace() {
                       <h4 className="font-semibold text-cyber-cyan">{generatedRoom.name}</h4>
                       <p className="text-sm text-muted-foreground">ID: {generatedRoom.id}</p>
                       <p className="text-sm mt-2">{generatedRoom.description}</p>
-                      <button className="mt-3 px-4 py-2 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                      <button 
+                        onClick={() => handleLaunchRoom(generatedRoom)}
+                        className="mt-3 px-4 py-2 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform"
+                      >
                         Launch Room
                       </button>
                     </motion.div>
@@ -342,7 +464,10 @@ export default function WhisprSpace() {
                           <span className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse"></span>
                           {room.listeners} listeners
                         </span>
-                        <button className="px-3 py-1 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                        <button 
+                          onClick={() => handleEnterRoom(room)}
+                          className="px-3 py-1 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform"
+                        >
                           Enter
                         </button>
                       </div>
@@ -514,11 +639,22 @@ export default function WhisprSpace() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
-              <input
-                type="text"
-                placeholder="Search for whispers, rooms, or souls..."
-                className="w-full px-6 py-3 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter room ID to join..."
+                  className="flex-1 px-6 py-3 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchRoom()}
+                />
+                <button
+                  onClick={handleSearchRoom}
+                  className="px-6 py-3 bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary font-semibold rounded-lg hover:scale-105 transition-transform duration-200"
+                >
+                  Search
+                </button>
+              </div>
             </motion.div>
 
             {/* Navigation Options */}
