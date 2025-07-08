@@ -177,6 +177,8 @@ export default function WhisprSpace() {
     setRoomReloadKey(prev => prev + 1);
   };
 
+  console.log('Current state:', { currentView, currentRoom }); // Debug log
+  
   if (currentView === 'chat' && currentRoom) {
     return (
       <div className="min-h-screen relative bg-gradient-to-br from-ambient-primary via-ambient-secondary to-ambient-tertiary text-foreground font-sans overflow-hidden">
