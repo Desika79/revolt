@@ -30,12 +30,67 @@ export default function WhisprSpace() {
     { id: 'dream-010', name: 'Dream Portal', description: 'Subconscious murmurs...', listeners: Math.floor(Math.random() * 20) }
   ]);
   const [roomReloadKey, setRoomReloadKey] = useState(0);
+  const [showGenderSelect, setShowGenderSelect] = useState(false);
+  const [userProfile, setUserProfile] = useState<{id: string, gender: 'male' | 'female', avatar: string} | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
 
-  const handleEnterVoid = () => {
-    setCurrentView('main');
-  };
+  // Move useEffect to top before any conditional returns
+  useEffect(() => {
+    // Note: You'll need to add ambient-whispers.mp3 to your public folder
+    const audio = new Audio("/ambient-whispers.mp3");
+    audio.loop = true;
+    audio.volume = 0.3;
+    
+    // Start audio on user interaction to avoid autoplay restrictions
+    const startAudio = () => {
+      audio.play().catch(console.warn);
+      document.removeEventListener('click', startAudio);
+    };
+    document.addEventListener('click', startAudio);
+
+    if (typeof window !== "undefined" && navigator.mediaDevices) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then((stream) => {
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const source = audioContext.createMediaStreamSource(stream);
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 64;
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          source.connect(analyser);
+          analyserRef.current = analyser;
+          dataArrayRef.current = dataArray;
+
+          const updateVolume = () => {
+            if (analyserRef.current && dataArrayRef.current) {
+              analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+              const avg = dataArrayRef.current.reduce((a, b) => a + b) / bufferLength;
+              setVolume(avg);
+            }
+            requestAnimationFrame(updateVolume);
+          };
+
+          updateVolume();
+        })
+        .catch((error) => {
+          console.warn("Microphone access denied:", error);
+          // Fallback to random volume simulation
+          const simulateVolume = () => {
+            setVolume(Math.random() * 100);
+            setTimeout(simulateVolume, 100);
+          };
+          simulateVolume();
+        });
+    }
+
+    const timer = setTimeout(() => setIsLoaded(true), 3000);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', startAudio);
+    };
+  }, []);
 
   const handleListenClick = async () => {
     try {
@@ -177,6 +232,33 @@ export default function WhisprSpace() {
     setRoomReloadKey(prev => prev + 1);
   };
 
+  // Gender selection functions
+  const generateUserProfile = (gender: 'male' | 'female') => {
+    const maleAvatars = ['🧔', '👨', '👦', '🧓', '👴', '🧑‍💼', '👨‍💻', '👨‍🎤'];
+    const femaleAvatars = ['👩', '👧', '🧓', '👵', '👩‍💼', '👩‍💻', '👩‍🎤', '👸'];
+    
+    const avatars = gender === 'male' ? maleAvatars : femaleAvatars;
+    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+    const uniqueId = `${gender}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    
+    return {
+      id: uniqueId,
+      gender,
+      avatar: randomAvatar
+    };
+  };
+
+  const handleGenderSelect = (gender: 'male' | 'female') => {
+    const profile = generateUserProfile(gender);
+    setUserProfile(profile);
+    setShowGenderSelect(false);
+    setCurrentView('main');
+  };
+
+  const handleEnterVoid = () => {
+    setShowGenderSelect(true);
+  };
+
   console.log('Current state:', { currentView, currentRoom }); // Debug log
   
   if (currentView === 'chat' && currentRoom) {
@@ -197,12 +279,20 @@ export default function WhisprSpace() {
                 </h1>
                 <p className="text-sm text-muted-foreground">Room ID: {currentRoom.id}</p>
               </div>
-              <button 
-                onClick={() => setCurrentView('main')}
-                className="px-4 py-2 text-cyber-cyan border border-cyber-cyan/30 rounded-lg hover:bg-cyber-cyan/10 transition-all duration-200"
-              >
-                Leave Room
-              </button>
+              <div className="flex items-center gap-4">
+                {userProfile && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-whisper-mist/10 rounded-lg">
+                    <span className="text-lg">{userProfile.avatar}</span>
+                    <span className="text-xs text-muted-foreground">ID: {userProfile.id}</span>
+                  </div>
+                )}
+                <button 
+                  onClick={() => setCurrentView('main')}
+                  className="px-4 py-2 text-cyber-cyan border border-cyber-cyan/30 rounded-lg hover:bg-cyber-cyan/10 transition-all duration-200"
+                >
+                  Leave Room
+                </button>
+              </div>
             </div>
           </motion.div>
 
@@ -269,62 +359,6 @@ export default function WhisprSpace() {
       </div>
     );
   }
-
-  useEffect(() => {
-    // Note: You'll need to add ambient-whispers.mp3 to your public folder
-    const audio = new Audio("/ambient-whispers.mp3");
-    audio.loop = true;
-    audio.volume = 0.3;
-    
-    // Start audio on user interaction to avoid autoplay restrictions
-    const startAudio = () => {
-      audio.play().catch(console.warn);
-      document.removeEventListener('click', startAudio);
-    };
-    document.addEventListener('click', startAudio);
-
-    if (typeof window !== "undefined" && navigator.mediaDevices) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const source = audioContext.createMediaStreamSource(stream);
-          const analyser = audioContext.createAnalyser();
-          analyser.fftSize = 64;
-          const bufferLength = analyser.frequencyBinCount;
-          const dataArray = new Uint8Array(bufferLength);
-
-          source.connect(analyser);
-          analyserRef.current = analyser;
-          dataArrayRef.current = dataArray;
-
-          const updateVolume = () => {
-            if (analyserRef.current && dataArrayRef.current) {
-              analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-              const avg = dataArrayRef.current.reduce((a, b) => a + b) / bufferLength;
-              setVolume(avg);
-            }
-            requestAnimationFrame(updateVolume);
-          };
-
-          updateVolume();
-        })
-        .catch((error) => {
-          console.warn("Microphone access denied:", error);
-          // Fallback to random volume simulation
-          const simulateVolume = () => {
-            setVolume(Math.random() * 100);
-            setTimeout(simulateVolume, 100);
-          };
-          simulateVolume();
-        });
-    }
-
-    const timer = setTimeout(() => setIsLoaded(true), 3000);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('click', startAudio);
-    };
-  }, []);
 
   if (currentView === 'rooms') {
     return (
@@ -1024,6 +1058,58 @@ export default function WhisprSpace() {
         <p>Volume: {Math.round((volume / 255) * 100)}%</p>
         <p className="text-cyber-cyan">Microphone: {volume > 0 ? 'Active' : 'Inactive'}</p>
       </div>
+
+      {/* Gender Selection Modal */}
+      <AnimatePresence>
+        {showGenderSelect && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-ambient-primary/90 backdrop-blur-sm border border-cyber-cyan/30 rounded-lg p-8 max-w-md w-full"
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-cyber-cyan to-cyber-purple bg-clip-text text-transparent">
+                Select Your Identity
+              </h3>
+              <p className="text-center text-muted-foreground mb-8">
+                Choose your gender to generate a unique avatar and ID for your whisper journey
+              </p>
+              
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => handleGenderSelect('male')}
+                  className="flex flex-col items-center gap-3 px-8 py-6 bg-whisper-mist/10 border border-cyber-cyan/30 rounded-lg hover:bg-cyber-cyan/10 transition-all duration-200 hover:scale-105"
+                >
+                  <div className="text-4xl">👨</div>
+                  <span className="text-cyber-cyan font-semibold">Male</span>
+                </button>
+                
+                <button
+                  onClick={() => handleGenderSelect('female')}
+                  className="flex flex-col items-center gap-3 px-8 py-6 bg-whisper-mist/10 border border-cyber-purple/30 rounded-lg hover:bg-cyber-purple/10 transition-all duration-200 hover:scale-105"
+                >
+                  <div className="text-4xl">👩</div>
+                  <span className="text-cyber-purple font-semibold">Female</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowGenderSelect(false)}
+                className="w-full mt-6 px-4 py-2 text-muted-foreground border border-muted-foreground/30 rounded-lg hover:bg-muted-foreground/10 transition-all duration-200"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
