@@ -148,13 +148,17 @@ export default function WhisprSpace() {
   };
 
   const handleLaunchRoom = (room: {name: string, id: string, description: string}) => {
+    console.log('handleLaunchRoom called with room:', room);
     setCurrentRoom(room);
     setCurrentView('chat');
+    console.log('Set currentView to chat and currentRoom to:', room);
   };
 
   const handleEnterRoom = (room: {name: string, id: string, description: string, listeners: number}) => {
+    console.log('handleEnterRoom called with room:', room);
     setCurrentRoom(room);
     setCurrentView('chat');
+    console.log('Set currentView to chat and currentRoom to:', room);
   };
 
   const reloadRooms = () => {
