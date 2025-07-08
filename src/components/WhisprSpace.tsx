@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import maleSample1 from "../assets/avatars/male-sample-1.png";
+import femaleSample1 from "../assets/avatars/female-sample-1.png";
+import maleSample2 from "../assets/avatars/male-sample-2.png";
+import femaleSample2 from "../assets/avatars/female-sample-2.png";
 
 export default function WhisprSpace() {
   const [volume, setVolume] = useState(0);
@@ -32,6 +36,8 @@ export default function WhisprSpace() {
   const [roomReloadKey, setRoomReloadKey] = useState(0);
   const [showGenderSelect, setShowGenderSelect] = useState(false);
   const [userProfile, setUserProfile] = useState<{id: string, gender: 'male' | 'female', avatar: string} | null>(null);
+  const [savedRooms, setSavedRooms] = useState<Array<{name: string, id: string, description: string, timestamp: Date}>>([]);
+  const [savedIndividuals, setSavedIndividuals] = useState<Array<{id: string, name: string, avatar: string, lastSeen: Date}>>([]);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
 
@@ -213,6 +219,22 @@ export default function WhisprSpace() {
     console.log('handleEnterRoom called with room:', room);
     setCurrentRoom(room);
     setCurrentView('chat');
+    
+    // Save room to history
+    const roomToSave = {
+      name: room.name,
+      id: room.id,
+      description: room.description,
+      timestamp: new Date()
+    };
+    setSavedRooms(prev => {
+      const exists = prev.some(r => r.id === room.id);
+      if (!exists) {
+        return [roomToSave, ...prev.slice(0, 9)]; // Keep max 10 rooms
+      }
+      return prev;
+    });
+    
     console.log('Set currentView to chat and currentRoom to:', room);
   };
 
@@ -234,12 +256,14 @@ export default function WhisprSpace() {
 
   // Gender selection functions
   const generateUserProfile = (gender: 'male' | 'female') => {
-    const maleAvatars = ['🧔', '👨', '👦', '🧓', '👴', '🧑‍💼', '👨‍💻', '👨‍🎤'];
-    const femaleAvatars = ['👩', '👧', '🧓', '👵', '👩‍💼', '👩‍💻', '👩‍🎤', '👸'];
-    
-    const avatars = gender === 'male' ? maleAvatars : femaleAvatars;
-    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
     const uniqueId = `${gender}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    
+    // Use 3D character avatars
+    const male3DAvatars = [maleSample1, maleSample2];
+    const female3DAvatars = [femaleSample1, femaleSample2];
+    
+    const avatars = gender === 'male' ? male3DAvatars : female3DAvatars;
+    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
     
     return {
       id: uniqueId,
@@ -282,7 +306,19 @@ export default function WhisprSpace() {
               <div className="flex items-center gap-4">
                 {userProfile && (
                   <div className="flex items-center gap-2 px-3 py-1 bg-whisper-mist/10 rounded-lg">
-                    <span className="text-lg">{userProfile.avatar}</span>
+                    {typeof userProfile.avatar === 'string' && userProfile.avatar.startsWith('src/') ? (
+                      <img 
+                        src={userProfile.avatar} 
+                        alt="Avatar" 
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <img 
+                        src={userProfile.avatar} 
+                        alt="Avatar" 
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
                     <span className="text-xs text-muted-foreground">ID: {userProfile.id}</span>
                   </div>
                 )}
@@ -355,6 +391,33 @@ export default function WhisprSpace() {
               </button>
             </div>
           </motion.div>
+
+          {/* Footer Navigation */}
+          <div className="p-4 bg-ambient-primary/90 backdrop-blur-sm border-t border-cyber-cyan/20">
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setCurrentView('main')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">🏠</span>
+                <span className="text-xs font-medium">Home</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('rooms')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-purple hover:bg-cyber-purple/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">🏢</span>
+                <span className="text-xs font-medium">Rooms</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('individuals')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">👥</span>
+                <span className="text-xs font-medium">Individuals</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -517,6 +580,33 @@ export default function WhisprSpace() {
               </motion.div>
             )}
           </div>
+
+          {/* Footer Navigation */}
+          <div className="p-4 bg-ambient-primary/90 backdrop-blur-sm border-t border-cyber-cyan/20">
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setCurrentView('main')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">🏠</span>
+                <span className="text-xs font-medium">Home</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('rooms')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-purple hover:bg-cyber-purple/10 rounded-lg transition-all duration-200 bg-cyber-purple/10"
+              >
+                <span className="text-xl">🏢</span>
+                <span className="text-xs font-medium">Rooms</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('individuals')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">👥</span>
+                <span className="text-xs font-medium">Individuals</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -549,36 +639,119 @@ export default function WhisprSpace() {
           </motion.div>
 
           <div className="flex-1 p-6">
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              {Array.from({ length: 8 }, (_, index) => (
-                <motion.div
-                  key={index}
-                  className="p-4 bg-whisper-mist/10 border border-cyber-purple/20 rounded-lg hover:bg-cyber-purple/5 transition-all duration-200 cursor-pointer"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
+            {/* Saved Individuals Section */}
+            {savedIndividuals.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-cyber-purple mb-4">Recent Connections</h3>
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyber-cyan to-cyber-purple rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-ambient-primary font-bold">
-                      {String.fromCharCode(65 + index)}
-                    </span>
-                  </div>
-                  <h3 className="text-center text-cyber-purple font-medium mb-1">Whisperer {String.fromCharCode(65 + index)}</h3>
-                  <p className="text-xs text-muted-foreground text-center mb-3">
-                    {index % 3 === 0 ? 'Listening...' : index % 3 === 1 ? 'Whispering...' : 'Silent...'}
-                  </p>
-                  <button className="w-full px-3 py-1 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
-                    Whisper
-                  </button>
+                  {savedIndividuals.map((individual, index) => (
+                    <motion.div
+                      key={individual.id}
+                      className="p-4 bg-whisper-mist/10 border border-cyber-purple/20 rounded-lg hover:bg-cyber-purple/5 transition-all duration-200 cursor-pointer"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                        {individual.avatar.startsWith('src/') ? (
+                          <img 
+                            src={individual.avatar} 
+                            alt="Avatar" 
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-2xl">{individual.avatar}</span>
+                        )}
+                      </div>
+                      <h3 className="text-center text-cyber-purple font-medium mb-1">{individual.name}</h3>
+                      <p className="text-xs text-muted-foreground text-center mb-3">
+                        Last seen: {individual.lastSeen.toLocaleDateString()}
+                      </p>
+                      <button className="w-full px-3 py-1 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                        Whisper
+                      </button>
+                    </motion.div>
+                  ))}
                 </motion.div>
-              ))}
-            </motion.div>
+              </div>
+            )}
+
+            {/* Discover New Individuals */}
+            <div>
+              <h3 className="text-xl font-bold text-cyber-cyan mb-4">Discover New Voices</h3>
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                {Array.from({ length: 8 }, (_, index) => (
+                  <motion.div
+                    key={index}
+                    className="p-4 bg-whisper-mist/10 border border-cyber-purple/20 rounded-lg hover:bg-cyber-purple/5 transition-all duration-200 cursor-pointer"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => {
+                      const newIndividual = {
+                        id: `user-${Date.now()}-${index}`,
+                        name: `Whisperer ${String.fromCharCode(65 + index)}`,
+                        avatar: ['🧔', '👨', '👩', '👧', '🧓', '👴', '👵', '🧑‍💼'][index] || '👤',
+                        lastSeen: new Date()
+                      };
+                      setSavedIndividuals(prev => [newIndividual, ...prev.slice(0, 9)]);
+                    }}
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-cyber-cyan to-cyber-purple rounded-full mx-auto mb-3 flex items-center justify-center">
+                      <span className="text-ambient-primary font-bold">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                    </div>
+                    <h3 className="text-center text-cyber-purple font-medium mb-1">Whisperer {String.fromCharCode(65 + index)}</h3>
+                    <p className="text-xs text-muted-foreground text-center mb-3">
+                      {index % 3 === 0 ? 'Listening...' : index % 3 === 1 ? 'Whispering...' : 'Silent...'}
+                    </p>
+                    <button className="w-full px-3 py-1 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                      Whisper
+                    </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Footer Navigation */}
+          <div className="p-4 bg-ambient-primary/90 backdrop-blur-sm border-t border-cyber-cyan/20">
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setCurrentView('main')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">🏠</span>
+                <span className="text-xs font-medium">Home</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('rooms')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-purple hover:bg-cyber-purple/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">🏢</span>
+                <span className="text-xs font-medium">Rooms</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('individuals')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200 bg-cyber-cyan/10"
+              >
+                <span className="text-xl">👥</span>
+                <span className="text-xs font-medium">Individuals</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -717,6 +890,33 @@ export default function WhisprSpace() {
                 Find Individuals
               </button>
             </motion.div>
+          </div>
+
+          {/* Footer Navigation */}
+          <div className="p-4 bg-ambient-primary/90 backdrop-blur-sm border-t border-cyber-cyan/20">
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setCurrentView('main')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200 bg-cyber-cyan/10"
+              >
+                <span className="text-xl">🏠</span>
+                <span className="text-xs font-medium">Home</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('rooms')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-purple hover:bg-cyber-purple/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">🏢</span>
+                <span className="text-xs font-medium">Rooms</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('individuals')}
+                className="flex flex-col items-center gap-1 px-4 py-2 text-cyber-cyan hover:bg-cyber-cyan/10 rounded-lg transition-all duration-200"
+              >
+                <span className="text-xl">👥</span>
+                <span className="text-xs font-medium">Individuals</span>
+              </button>
+            </div>
           </div>
 
           {/* Enhanced Volume Indicator */}
