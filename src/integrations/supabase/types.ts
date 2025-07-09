@@ -14,13 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      individual_chats: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          participant_avatar: string | null
+          participant_name: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          participant_avatar?: string | null
+          participant_name: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          participant_avatar?: string | null
+          participant_name?: string
+        }
+        Relationships: []
+      }
+      individual_messages: {
+        Row: {
+          avatar_url: string | null
+          chat_id: string
+          created_at: string
+          id: string
+          message: string
+          sender_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          chat_id: string
+          created_at?: string
+          id?: string
+          message: string
+          sender_name: string
+        }
+        Update: {
+          avatar_url?: string | null
+          chat_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "individual_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_messages: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          message: string
+          room_id: string
+          sender_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          room_id: string
+          sender_name: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          room_id?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

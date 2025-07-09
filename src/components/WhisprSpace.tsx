@@ -4,6 +4,7 @@ import maleSample1 from "../assets/avatars/male-sample-1.png";
 import femaleSample1 from "../assets/avatars/female-sample-1.png";
 import maleSample2 from "../assets/avatars/male-sample-2.png";
 import femaleSample2 from "../assets/avatars/female-sample-2.png";
+import { useDatabase, Room, RoomMessage, IndividualChat, IndividualMessage } from "../hooks/useDatabase";
 
 export default function WhisprSpace() {
   const [volume, setVolume] = useState(0);
@@ -36,10 +37,35 @@ export default function WhisprSpace() {
   const [roomReloadKey, setRoomReloadKey] = useState(0);
   const [showGenderSelect, setShowGenderSelect] = useState(false);
   const [userProfile, setUserProfile] = useState<{id: string, gender: 'male' | 'female', avatar: string} | null>(null);
-  const [savedRooms, setSavedRooms] = useState<Array<{name: string, id: string, description: string, timestamp: Date}>>([]);
-  const [savedIndividuals, setSavedIndividuals] = useState<Array<{id: string, name: string, avatar: string, lastSeen: Date}>>([]);
+  const [savedRooms, setSavedRooms] = useState<Room[]>([]);
+  const [savedIndividuals, setSavedIndividuals] = useState<IndividualChat[]>([]);
+  const [currentRoomMessages, setCurrentRoomMessages] = useState<RoomMessage[]>([]);
+  const [currentChatMessages, setCurrentChatMessages] = useState<IndividualMessage[]>([]);
+  const [currentIndividualChat, setCurrentIndividualChat] = useState<IndividualChat | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
+  const database = useDatabase();
+
+  // Load saved rooms and individuals on mount
+  useEffect(() => {
+    database.getRooms().then(setSavedRooms).catch(console.error);
+    database.getIndividualChats().then(setSavedIndividuals).catch(console.error);
+    database.cleanupExpiredData().catch(console.error);
+  }, []);
+
+  // Load room messages when entering a room
+  useEffect(() => {
+    if (currentView === 'chat' && currentRoom) {
+      database.getRoomMessages(currentRoom.id).then(setCurrentRoomMessages).catch(console.error);
+    }
+  }, [currentView, currentRoom?.id]);
+
+  // Load individual chat messages when entering a chat
+  useEffect(() => {
+    if (currentView === 'chat' && currentIndividualChat) {
+      database.getIndividualMessages(currentIndividualChat.id).then(setCurrentChatMessages).catch(console.error);
+    }
+  }, [currentView, currentIndividualChat?.id]);
 
   // Move useEffect to top before any conditional returns
   useEffect(() => {
@@ -131,17 +157,32 @@ export default function WhisprSpace() {
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const newMsg = {
-        id: messages.length + 1,
-        text: newMessage,
-        sender: "me",
-        timestamp: new Date()
-      };
-      setMessages([...messages, newMsg]);
+    if (newMessage.trim() && userProfile) {
+      if (currentRoom) {
+        // Save message to room
+        database.addRoomMessage(
+          currentRoom.id, 
+          newMessage, 
+          userProfile.id, 
+          userProfile.avatar
+        ).then(savedMessage => {
+          setCurrentRoomMessages(prev => [...prev, savedMessage]);
+        }).catch(console.error);
+      } else if (currentIndividualChat) {
+        // Save message to individual chat
+        database.addIndividualMessage(
+          currentIndividualChat.id, 
+          newMessage, 
+          userProfile.id, 
+          userProfile.avatar
+        ).then(savedMessage => {
+          setCurrentChatMessages(prev => [...prev, savedMessage]);
+        }).catch(console.error);
+      }
+      
       setNewMessage("");
       
-      // Simulate void response
+      // Simulate response after a delay
       setTimeout(() => {
         const responses = [
           "The void acknowledges your whisper...",
@@ -150,13 +191,17 @@ export default function WhisprSpace() {
           "Whispers return from the abyss...",
           "The silence speaks back..."
         ];
-        const voidMsg = {
-          id: messages.length + 2,
-          text: responses[Math.floor(Math.random() * responses.length)],
-          sender: "void",
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, voidMsg]);
+        const responseText = responses[Math.floor(Math.random() * responses.length)];
+        
+        if (currentRoom) {
+          database.addRoomMessage(currentRoom.id, responseText, "void", "🌌").then(savedMessage => {
+            setCurrentRoomMessages(prev => [...prev, savedMessage]);
+          }).catch(console.error);
+        } else if (currentIndividualChat) {
+          database.addIndividualMessage(currentIndividualChat.id, responseText, "void", "🌌").then(savedMessage => {
+            setCurrentChatMessages(prev => [...prev, savedMessage]);
+          }).catch(console.error);
+        }
       }, 1000 + Math.random() * 2000);
     }
   };
@@ -217,23 +262,21 @@ export default function WhisprSpace() {
 
   const handleEnterRoom = (room: {name: string, id: string, description: string, listeners: number}) => {
     console.log('handleEnterRoom called with room:', room);
-    setCurrentRoom(room);
-    setCurrentView('chat');
     
-    // Save room to history
-    const roomToSave = {
-      name: room.name,
-      id: room.id,
-      description: room.description,
-      timestamp: new Date()
-    };
-    setSavedRooms(prev => {
-      const exists = prev.some(r => r.id === room.id);
-      if (!exists) {
-        return [roomToSave, ...prev.slice(0, 9)]; // Keep max 10 rooms
-      }
-      return prev;
-    });
+    // Save room to database and local state, then enter
+    database.createRoom(room.name).then(savedRoom => {
+      setCurrentRoom({...room, id: savedRoom.id});
+      setCurrentIndividualChat(null);
+      setCurrentView('chat');
+      
+      setSavedRooms(prev => {
+        const exists = prev.some(r => r.id === savedRoom.id);
+        if (!exists) {
+          return [savedRoom, ...prev.slice(0, 9)]; // Keep max 10 rooms
+        }
+        return prev;
+      });
+    }).catch(console.error);
     
     console.log('Set currentView to chat and currentRoom to:', room);
   };
@@ -340,26 +383,34 @@ export default function WhisprSpace() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {messages.map((message, index) => (
+              {(currentRoom ? currentRoomMessages : currentChatMessages).map((message, index) => (
                 <motion.div
                   key={message.id}
-                  className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
-                  initial={{ opacity: 0, x: message.sender === 'me' ? 20 : -20 }}
+                  className={`flex ${message.sender_name === userProfile?.id ? 'justify-end' : 'justify-start'}`}
+                  initial={{ opacity: 0, x: message.sender_name === userProfile?.id ? 20 : -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender === 'me' 
+                    message.sender_name === userProfile?.id
                       ? 'bg-gradient-to-r from-cyber-cyan to-cyber-purple text-ambient-primary' 
-                      : message.sender === 'system'
-                      ? 'bg-whisper-mist/20 border border-cyber-cyan/30 text-cyber-cyan'
-                      : 'bg-whisper-mist/10 border border-cyber-purple/30 text-cyber-purple'
+                      : message.sender_name === 'void'
+                      ? 'bg-whisper-mist/10 border border-cyber-purple/30 text-cyber-purple'
+                      : 'bg-whisper-mist/20 border border-cyber-cyan/30 text-cyber-cyan'
                   }`}>
-                    <p className="text-sm">{message.text}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      {message.avatar_url && (
+                        <span className="text-xs">{message.avatar_url}</span>
+                      )}
+                      <span className="text-xs font-medium">
+                        {message.sender_name === userProfile?.id ? 'You' : message.sender_name}
+                      </span>
+                    </div>
+                    <p className="text-sm">{message.message}</p>
                     <p className={`text-xs mt-1 ${
-                      message.sender === 'me' ? 'text-ambient-primary/70' : 'text-muted-foreground'
+                      message.sender_name === userProfile?.id ? 'text-ambient-primary/70' : 'text-muted-foreground'
                     }`}>
-                      {message.timestamp.toLocaleTimeString()}
+                      {new Date(message.created_at).toLocaleTimeString()}
                     </p>
                   </div>
                 </motion.div>
@@ -527,6 +578,43 @@ export default function WhisprSpace() {
               </motion.div>
             )}
 
+            {/* Saved Rooms Section */}
+            {savedRooms.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-cyber-purple mb-4">Your Whisper Rooms (Auto-cleanup in 24h)</h3>
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {savedRooms.map((room, index) => (
+                    <motion.div
+                      key={room.id}
+                      className="p-4 bg-whisper-mist/10 border border-cyber-purple/20 rounded-lg hover:bg-cyber-purple/5 transition-all duration-200 cursor-pointer"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => {
+                        setCurrentRoom({...room, description: `Saved room: ${room.name}`});
+                        setCurrentIndividualChat(null);
+                        setCurrentView('chat');
+                      }}
+                    >
+                      <h3 className="text-lg font-semibold text-cyber-purple mb-2">{room.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Created: {new Date(room.created_at).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-cyber-cyan">
+                        Expires: {new Date(room.expires_at).toLocaleDateString()}
+                      </p>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
+            )}
+
             {/* Search Active Rooms Section */}
             {roomMode === 'search' && (
               <motion.div
@@ -659,21 +747,28 @@ export default function WhisprSpace() {
                       whileHover={{ scale: 1.02 }}
                     >
                       <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                        {individual.avatar.startsWith('src/') ? (
+                        {individual.participant_avatar && individual.participant_avatar.startsWith('src/') ? (
                           <img 
-                            src={individual.avatar} 
+                            src={individual.participant_avatar} 
                             alt="Avatar" 
                             className="w-12 h-12 rounded-full object-cover"
                           />
                         ) : (
-                          <span className="text-2xl">{individual.avatar}</span>
+                          <span className="text-2xl">{individual.participant_avatar || '👤'}</span>
                         )}
                       </div>
-                      <h3 className="text-center text-cyber-purple font-medium mb-1">{individual.name}</h3>
+                      <h3 className="text-center text-cyber-purple font-medium mb-1">{individual.participant_name}</h3>
                       <p className="text-xs text-muted-foreground text-center mb-3">
-                        Last seen: {individual.lastSeen.toLocaleDateString()}
+                        Created: {new Date(individual.created_at).toLocaleDateString()}
                       </p>
-                      <button className="w-full px-3 py-1 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform">
+                      <button 
+                        onClick={() => {
+                          setCurrentIndividualChat(individual);
+                          setCurrentRoom(null);
+                          setCurrentView('chat');
+                        }}
+                        className="w-full px-3 py-1 bg-gradient-to-r from-cyber-purple to-cyber-cyan text-ambient-primary text-sm rounded-md hover:scale-105 transition-transform"
+                      >
                         Whisper
                       </button>
                     </motion.div>
@@ -700,13 +795,12 @@ export default function WhisprSpace() {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => {
-                      const newIndividual = {
-                        id: `user-${Date.now()}-${index}`,
-                        name: `Whisperer ${String.fromCharCode(65 + index)}`,
-                        avatar: ['🧔', '👨', '👩', '👧', '🧓', '👴', '👵', '🧑‍💼'][index] || '👤',
-                        lastSeen: new Date()
-                      };
-                      setSavedIndividuals(prev => [newIndividual, ...prev.slice(0, 9)]);
+                      const participantName = `Whisperer ${String.fromCharCode(65 + index)}`;
+                      const participantAvatar = ['🧔', '👨', '👩', '👧', '🧓', '👴', '👵', '🧑‍💼'][index] || '👤';
+                      
+                      database.createIndividualChat(participantName, participantAvatar).then(newChat => {
+                        setSavedIndividuals(prev => [newChat, ...prev.slice(0, 9)]);
+                      }).catch(console.error);
                     }}
                   >
                     <div className="w-12 h-12 bg-gradient-to-r from-cyber-cyan to-cyber-purple rounded-full mx-auto mb-3 flex items-center justify-center">
